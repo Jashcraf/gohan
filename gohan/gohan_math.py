@@ -1,6 +1,6 @@
 import numpy as np
+from scipy.special import riccati_jn, riccati_yn
 
-# Physical constants
 # Physical constants
 C = 2.998e10  # cm/s
 H = 6.626e-27  # erg s
@@ -53,3 +53,46 @@ def set_backend_to_jax():
     np._srcmodule = jax.numpy
 
     return
+
+def psi_n(n, z):
+    """Compute the Riccati-Bessel Function of the first kind
+    
+    NOTE: This is a 'thin' wrapper over the scipy function to 
+    1) maintain notation with the reference for Mie Theory and
+    2) to handle cases where the different backends don't support the scipy functions
+
+    Parameters
+    ----------
+    n: int
+        maximum order of the function
+    z: float or ndarray
+        argument over which the function is evaluated
+    
+    Returns
+    -------
+    ndarray, ndarray:
+        Riccati-Bessel function evaluated over z, and its derivative
+    """
+    return riccati_jn(n, z)
+
+
+def xi_n(n, z):
+    """Compute the Riccati-Bessel Function of the second kind
+    
+    NOTE: This is a 'thin' wrapper over the scipy function to 
+    1) maintain notation with the reference for Mie Theory and
+    2) to handle cases where the different backends don't support the scipy functions
+
+    Parameters
+    ----------
+    n: int
+        maximum order of the function
+    z: float or ndarray
+        argument over which the function is evaluated
+    
+    Returns
+    -------
+    ndarray, ndarray:
+        Riccati-Bessel function evaluated over z, and its derivative
+    """
+    return riccati_yn(n, z)
