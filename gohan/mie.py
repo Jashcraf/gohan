@@ -199,6 +199,52 @@ def amplitude_scattering_matrix(n_terms, medium_index, particle_radius,
     return amp_scatter_matrix
 
 
+def scattering_cross_section_terms(n, medium_index, particle_radius, particle_index, wavelength):
+    """
+    NOTE: I'm not toatally sure on the physical significance of sig_b and sig_c, the ocean optics
+    article says that
+    - Q_a is the fraction of incident energy that is absorbed
+    - Q_b is the fraction of incident energy scattered into all directions
+    - Q_c = Q_a + Q_b for total attenuation
+
+    also that 
+    sig_b = Q_b * A_s, where A_s is the area of the sphere = pi * rho^2
+    sig_c = Q_c * A_s
+
+    so I believe these are the scattering cross-sections for energy scattered into all directions,
+    and total attenuated energy.
+
+    Parameters
+    ----------
+    n: int
+        order to evaluate the summation terms at
+    medium_index: float
+        (generally) complex index of refraction the particles are immersed in
+    particle_radius: float
+        particle radius in units of distance, should be same as wavelength
+    refractive_index: float
+        refractive index of the dielectric particle
+    wavelength: float
+        wavelength in units of distance, same as particle_radius
+    
+    Returns
+    -------
+    ndarray, ndarray
+        The sigma_b and sigma_c summation terms for the scattering cross sections,
+        units of m^2 per particle
+    """
+
+    m = get_relative_index(medium_index, particle_index)
+    x = size_parameter(particle_radius, particle_index, wavelength)
+
+    a_n, b_n = mie_coefficients(x, n, m)
+    wave_vector = wavelength**2 / 2 / np.pi / particle_index**2
+    sigma_b = wave_vector * (2*n + 1) * (np.abs(a_n)**2 + np.abs(b_n)**2)
+    sigma_c = wave_vector * (2*n + 1) * np.real(a_n + b_n)
+
+    return sigma_b, sigma_c
+
+
 def rule_for_nterms(x):
     """From Ocean Optics article on Mie scattering,
     a rough rule for the number of terms needed for accurate
