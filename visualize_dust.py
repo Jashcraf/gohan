@@ -6,7 +6,7 @@ x = np.linspace(-100, 100, 400)
 y = np.linspace(-100, 100, 400)
 X, Y = np.meshgrid(x, y)
 Z = 0
-e = 0.3
+e = .9
 RHO = eccentric_ring_density(X, Y, Z, e=e)
 
 plt.title(f"Eccentric Ring Density Profile (e={e})")
