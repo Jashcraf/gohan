@@ -1,4 +1,5 @@
 from gohan.gohan_math import np
+from gohan.config import config
 
 
 def eccentric_ring_density(x, y, z, r0=50, e=0.1, omega=0, sigma_r=5, H0=0.05):
@@ -17,6 +18,7 @@ def eccentric_ring_density(x, y, z, r0=50, e=0.1, omega=0, sigma_r=5, H0=0.05):
     rho_r = np.exp(-0.5 * ((r - r_center)/sigma_r)**2)
     rho_z = np.exp(-0.5 * (z / H)**2)
     return rho_r * rho_z
+
 
 def reference_radius(theta, semimajor_axis, eccentricity):
     """
@@ -121,4 +123,21 @@ def vertical_profile(r, theta, z, rho_0, a_in, a_out, gamma, xi_0, Beta, semimaj
     decay = np.exp(decay_exponent)
 
     return rho_0 * np.sqrt(2 / (inner * outer)) * decay
+
+
+class SkyGrid:
+    def __init__(self, origin, n_samples):
+
+        self.origin = origin
+        self.n_samples = n_samples
+
+    def make_coordinates(self):
+        
+        # NOTE: Does this work if n_samples is an int?
+        n_r, n_th, n_z = self.n_samples
+
+        coordinates = [n_r, n_th, n_z]
+
+
+
 

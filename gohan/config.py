@@ -2,9 +2,15 @@ from gohan.gohan_math import np
 
 class Config:
     def __init__(self,
-                 precision=64):
+                 precision=64,
+                 radial_spacing="linear",
+                 height_spacing="linear",
+                 azimuthal_spacing="logarithmic"):
 
     self.precision = precision
+    self.radial_spacing = radial_spacing.lower()
+    self.height_spacing = height_spacing.lower()
+    self.azimuthal_spacing = azimuthal_spacing.lower()
 
     @property
     def precision(self):
