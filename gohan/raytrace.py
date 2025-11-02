@@ -1,5 +1,59 @@
-from gohan.gohan_math import np
+from gohan.gohan_math import np, GOLDEN_RATIO, spherical_to_cylindrical
 import numpy as truenp
+
+
+def fibbonacci_lattice(npts):
+    """Generates direction cosines that evenly sample a sphere
+    along Fibonacci spirals
+
+    Parameters
+    ----------
+    npts: int
+        Number of points evenly distributed on a sphere
+
+    Returns
+    -------
+    raydirs: ndarray
+        N x 3 array of direction cosines in cylindrical coordinates
+    """
+    phi = 2 * np.pi * np.arange(npts) / GOLDEN_RATIO
+
+    # Elevation angle (from top to bottom)
+    theta = np.arccos(1 - 2 * indices / npts)
+    
+    r, theta, z = spherical_to_cylindrical(np.ones(npts), theta, phi)
+
+    return r, theta, z
+
+
+def random_uniform_lattice(npts):
+    """Generates direction cosines that randomly sample a sphere
+
+    Parameters
+    ----------
+    npts: int
+        Number of points evenly distributed on a sphere
+
+    Returns
+    -------
+    raydirs: ndarray
+        N x 3 array of direction cosines in cylindrical coordinates
+    """
+    u = np.random.uniform(0, 1, npts)
+    v = np.random.uniform(0, 1, npts)
+    
+    theta = np.arccos(2*u - 1)  # elevation
+    phi = 2 * np.pi * v         # azimuth
+    
+    r, theta, z = spherical_to_cylindrical(np.ones(npts), theta, phi)
+
+    return r, theta, z
+
+
+def gen_isotropic_raybundle(NRAYS):
+
+    return
+
 
 def prop_rays(ray_x, ray_k, distance):
     """
@@ -17,6 +71,7 @@ def prop_rays(ray_x, ray_k, distance):
     if isinstance(distance, (int, float)):
         distance = np.full(ray_x.shape[0], distance)
     ray_x = ray_x + ray_k * distance[:, np.newaxis]
+
 
 def _scatter_henyey_greenstein(ray_k, g):
 

@@ -8,6 +8,7 @@ k_B = 1.381e-16  # erg/K
 sigma_SB = 5.67e-5  # erg/cm^2/K^4/s
 AU = 1.496e13  # cm
 L_sun = 3.828e33  # erg/s
+GOLDEN_RATIO = (1 + np.sqrt(5)) / 2
 
 class BackendShim:
     """A shim that allows a backend to be swapped at runtime.

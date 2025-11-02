@@ -1,0 +1,31 @@
+[project]
+name = "gohan"
+version = "0.1.0"
+description = "Monte-carlo radiative transfer modeling"
+readme = "README.md"
+requires-python =">=3.9"
+license = {file = "LICENSE.md"}
+authors = [
+  {name = "Jaren N. Ashcraft", email = "jarenashcraft@ucsb.edu"},
+]
+
+keywords = ["python", "optics", "debris", "scatter", "radiative transfer"]
+dependencies = ["numpy", "scipy"]
+
+classifiers=[
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+GitHub = "https://github.com/jashcraf/gohan"
+
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
