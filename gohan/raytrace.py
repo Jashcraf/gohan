@@ -1,4 +1,5 @@
-from gohan.gohan_math import np, GOLDEN_RATIO, spherical_to_cylindrical
+from gohan.gohan_math import np, GOLDEN_RATIO
+from gohan.geometry import spherical_to_cylindrical
 import numpy as truenp
 
 
@@ -16,7 +17,8 @@ def fibbonacci_lattice(npts):
     raydirs: ndarray
         N x 3 array of direction cosines in cylindrical coordinates
     """
-    phi = 2 * np.pi * np.arange(npts) / GOLDEN_RATIO
+    indices = np.arange(npts)
+    phi = 2 * np.pi * indices / GOLDEN_RATIO
 
     # Elevation angle (from top to bottom)
     theta = np.arccos(1 - 2 * indices / npts)
@@ -51,8 +53,7 @@ def random_uniform_lattice(npts):
 
 
 def gen_isotropic_raybundle(NRAYS):
-
-    return
+    pass
 
 
 def prop_rays(ray_x, ray_k, distance):
@@ -70,7 +71,10 @@ def prop_rays(ray_x, ray_k, distance):
     """
     if isinstance(distance, (int, float)):
         distance = np.full(ray_x.shape[0], distance)
+
     ray_x = ray_x + ray_k * distance[:, np.newaxis]
+
+    return ray_x
 
 
 def _scatter_henyey_greenstein(ray_k, g):
@@ -175,6 +179,11 @@ def project_to_image_plane(ray_x, observer_dir, image_plane_center,
     r = ray_x - image_plane_center
     x_proj = np.dot(r, x_axis)
     y_proj = np.dot(r, y_axis)
+
+    # TODO: Add option for spatial integration over a sample
     ix = int((x_proj + image_extent/2) / image_extent * nx)
     iy = int((y_proj + image_extent/2) / image_extent * ny)
     return ix, iy
+
+
+

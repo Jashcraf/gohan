@@ -211,6 +211,9 @@ def scattering_cross_section_terms(n, medium_index, particle_radius, particle_in
     sig_b = Q_b * A_s, where A_s is the area of the sphere = pi * rho^2
     sig_c = Q_c * A_s
 
+    It looks like the single-scattering albedo is given by
+    omega = sig_b / sig_c
+
     so I believe these are the scattering cross-sections for energy scattered into all directions,
     and total attenuated energy.
 

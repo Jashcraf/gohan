@@ -130,6 +130,11 @@ class SkyGrid:
 
         self.origin = origin
         self.n_samples = n_samples
+        self.spacings = [
+            config.radial_spacing,
+            config.azimuthal_spacing,
+            config.height_spacing
+        ]
 
     def make_coordinates(self):
         
@@ -137,6 +142,15 @@ class SkyGrid:
         n_r, n_th, n_z = self.n_samples
 
         coordinates = [n_r, n_th, n_z]
+
+        for coord, spacing in zip(coordinates, self.spacings):
+
+            if spacing == "linear":
+                space = np.linspace(0, coord)
+            elif spacing == "logarithmic":
+                space = np.logspace(0, coord)
+
+
 
 
 
