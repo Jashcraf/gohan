@@ -76,7 +76,7 @@ def scale_height(r, theta, xi_0, Beta, semimajor_axis, eccentricity, return_refe
         return xi_0 * (r / R_theta) ** Beta
 
 
-def vertical_profile(r, theta, z, rho_0, a_in, a_out, gamma, xi_0, Beta, semimajor_axis, eccentricity):
+def vertical_profile(r, theta, z, rho_0=1, a_in=0.1, a_out=1, gamma=2, xi_0=1, Beta=1, semimajor_axis=1, eccentricity=0):
     """
     Parameters
     ----------
