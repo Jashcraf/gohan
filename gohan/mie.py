@@ -65,9 +65,9 @@ def pi_recursion(n, theta):
         pi_n
     """
     if n == 0:
-        return 0 * np.ones_like(theta)
+        return np.zeros_like(theta)
     elif n == 1:
-        return 1 * np.ones_like(theta)
+        return np.ones_like(theta)
     else:
         first = (2*n - 1) / (n - 1) * np.cos(theta)
         second = n / (n - 1)
@@ -90,7 +90,7 @@ def tau_recursion(n, theta):
     """
     first = n * np.cos(theta)
     second = (n + 1)
-    return first * pi_recursion(n, theta) - second * pi_recursion(n-1, theta)
+    return (first * pi_recursion(n, theta)) - (second * pi_recursion(n-1, theta))
 
 
 def mie_coefficients_ab(x, n, m):
