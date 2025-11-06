@@ -1,5 +1,5 @@
-from gohan.gohan_math import np, psi_n, xi_n
-from gohan.conf.py import config
+from gohan.gohan_math import np, riccati_psi_xi
+from gohan.config import config
 from functools import lru_cache
 
 """
@@ -32,21 +32,24 @@ def relative_index(medium_index, particle_index):
     """
     Parameters
     ----------
-    medium_index: real or complex float
-        (generally) complex refractive index of the medium. Can be real-valued
-    particle_index:
-        refractive index of the dielectric particle
+    medium_index: real float
+        refractive index of the medium. 
+    particle_index: complex float
+        refractive index of the dielectric particle. Can be real-valued
 
     Returns
     -------
     float
         The relative index experienced between the particle and medium
     """
-    return medium_index.real / particle_index + 1j * medium_index.imag / particle_index
+    if particle_index.imag == 0: 
+        return particle_index.real / medium_index 
+    else:
+        return particle_index.real / medium_index + 1j * particle_index.imag / medium_index
 
 
 # apply memorization to avoid re-calculating values of pi
-@lru_cache(maxsize=None)
+#@lru_cache(maxsize=None)
 def pi_recursion(n, theta):
     """
     Parameters
@@ -62,9 +65,9 @@ def pi_recursion(n, theta):
         pi_n
     """
     if n == 0:
-        return 0
+        return 0 * np.ones_like(theta)
     elif n == 1:
-        return 1:
+        return 1 * np.ones_like(theta)
     else:
         first = (2*n - 1) / (n - 1) * np.cos(theta)
         second = n / (n - 1)
@@ -78,7 +81,7 @@ def tau_recursion(n, theta):
     n: int
         maximum order to evaluate the tau_n recursion at
     theta: ndarray
-        argument over which to evaluate tau
+        argument over which to evaluate tau, typically the scattering angle
 
     Returns
     -------
@@ -109,23 +112,23 @@ def mie_coefficients_ab(x, n, m):
     ndarray, ndarray
         The a_n and b_n coefficients from Mie Theory
     """
-    psi_n_eval_mx, psi_n_deprivative_mx = psi_n(n, m*x)
-    psi_n_eval_x, psi_n_derivative_x = psi_n(n, x)
-    xi_n_eval_x, xi_n_derivative_x = xi_n(n, x)
+    
+    psi_n_eval_mx, psi_n_derivative_mx, _, _ = riccati_psi_xi(n, m*x)
+    psi_n_eval_x, psi_n_derivative_x, xi_n_eval_x, xi_n_derivative_x = riccati_psi_xi(n, x)
 
     numerator = m * psi_n_eval_mx * psi_n_derivative_x - psi_n_eval_x * psi_n_derivative_mx
     denomenator = m * psi_n_eval_mx * xi_n_derivative_x - xi_n_eval_x * psi_n_derivative_mx
     a_n = numerator / denomenator
 
     numerator = psi_n_eval_mx * psi_n_derivative_x - m * psi_n_eval_x * psi_n_derivative_mx
-    denomenator = psi_n_eval_mx * xi_n_derivative_x - m * xi_n_eval_x * psi_n_derivative_x
+    denomenator = psi_n_eval_mx * xi_n_derivative_x - m * xi_n_eval_x * psi_n_derivative_mx
 
     b_n = numerator / denomenator
-
+    
     return a_n, b_n
 
 
-def mie_summation_terms(n, medium_index, particle_radius, particle_index, wavelength):
+def mie_summation_terms(n, medium_index, particle_radius, particle_index, wavelength, theta):
     """
     Parameters
     ----------
@@ -139,6 +142,8 @@ def mie_summation_terms(n, medium_index, particle_radius, particle_index, wavele
         refractive index of the dielectric particle
     wavelength: float
         wavelength in units of distance, same as particle_radius
+    theta: float or ndarray
+        Scattering angle in radians
     
     Returns
     -------
@@ -146,20 +151,21 @@ def mie_summation_terms(n, medium_index, particle_radius, particle_index, wavele
         The S1 and S2 summation terms for the amplitude scattering matrix
     """
 
-    m = get_relative_index(medium_index, particle_index)
+    m = relative_index(medium_index, particle_index)
     x = size_parameter(particle_radius, particle_index, wavelength)
 
-    a_n, b_n = mie_coefficients(x, n, m)
+    a_n, b_n = mie_coefficients_ab(x, n, m)
+
 
     front = (2 * n + 1) / (n * (n + 1))
-    S1_n = front * (a_n * pi_recursion(n) + b_n * tau_recursion(n))
-    S2_n = front * (b_n * pi_recursion(n) + a_n * tau_recursion(n))
+    S1_n = front * (a_n * pi_recursion(n, theta) + b_n * tau_recursion(n, theta))
+    S2_n = front * (b_n * pi_recursion(n, theta) + a_n * tau_recursion(n, theta))
     
     return S1_n, S2_n
 
 
 def amplitude_scattering_matrix(n_terms, medium_index, particle_radius,
-                                particle_index, wavelength):
+                                particle_index, wavelength, theta):
     
     """
     Parameters
@@ -174,7 +180,9 @@ def amplitude_scattering_matrix(n_terms, medium_index, particle_radius,
         refractive index of the dielectric particle
     wavelength: float
         wavelength in units of distance, same as particle_radius
-    
+    theta: float or ndarray
+        Scattering angle in radians
+
     Returns
     -------
     ndarray
@@ -188,7 +196,8 @@ def amplitude_scattering_matrix(n_terms, medium_index, particle_radius,
                                          medium_index,
                                          particle_radius,
                                          particle_index,
-                                         wavelength)
+                                         wavelength,
+                                         theta)
 
         S1 = S1 + S1_n
         S2 = S2 + S2_n
@@ -237,13 +246,17 @@ def scattering_cross_section_terms(n, medium_index, particle_radius, particle_in
         units of m^2 per particle
     """
 
-    m = get_relative_index(medium_index, particle_index)
+    m = relative_index(medium_index, particle_index)
     x = size_parameter(particle_radius, particle_index, wavelength)
+    wave_vector = wavelength**2 / 2 / np.pi / medium_index**2
+    
+    sigma_b = 0
+    sigma_c = 0
 
-    a_n, b_n = mie_coefficients(x, n, m)
-    wave_vector = wavelength**2 / 2 / np.pi / particle_index**2
-    sigma_b = wave_vector * (2*n + 1) * (np.abs(a_n)**2 + np.abs(b_n)**2)
-    sigma_c = wave_vector * (2*n + 1) * np.real(a_n + b_n)
+    for i in range(0, n):
+        a_n, b_n = mie_coefficients_ab(x, i, m)
+        sigma_b = sigma_b + wave_vector * (2*i + 1) * (np.abs(a_n)**2 + np.abs(b_n)**2)
+        sigma_c = sigma_c + wave_vector * (2*i + 1) * np.real(a_n + b_n)
 
     return sigma_b, sigma_c
 
@@ -264,5 +277,49 @@ def rule_for_nterms(x):
         minimum number of terms required for accurate simulation
     """
     return int(x + 4 * x**(1/3) + 2)
+
+
+def compute_opacities(grain_sizes, grain_size_distribution, material_kwargs, grain_size_kwargs=None):
+    """kappa, or the scattering / extinction opacity
+    
+    Parameters
+    ----------
+    grain_sizes: list or ndarray
+        list of grain radii in centimeters to integrate over
+    grain_size_distribution: list, ndarray, or callable of grain sizes
+        size distribution of the grains, tends to be a power law. User
+        can supply own values or a callable of grain sizes
+    grain_size_kwargs: dict
+        dictionary of keyword arguments for the grain_size_distribution
+        callable, defaults to None
+    material_kwargs: dict
+        Keyword arguments for the material to input in the `scattering_cross_section_terms`
+        method. 
+    grain_size_kwargs: dict
+        kappa_sca = kappa_sca + area * sigma_sca
+        Keyword arguments for the grain size distrubution callable. If grain_size_distribution
+        not a callable, defaults to None
+
+    Returns
+    -------
+    float, float
+        The scattering and extinction opacities
+
+    """
+    
+    if isinstance(grain_size_distribution, Callable):
+        grain_size_distribution = grain_size_distribution(grain_sizes, **grain_size_kwargs)
+    
+
+    kappa_sca = 0
+    kappa_ext = 0
+    for grain_size, distribution in zip(grain_sizes, grain_size_distribution):
+
+        area = np.pi * grain_size**2 * distribution
+        sigma_sca, sigma_ext = scattering_cross_section_terms(**material_kwargs)
+        kappa_sca = kappa_sca + area * sigma_sca
+        kappa_ext = kappa_ext + area * sigma_ext
+
+    return kappa_sca, kappa_ext
 
 
