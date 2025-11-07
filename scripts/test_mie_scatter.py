@@ -39,7 +39,7 @@ plt.text(350, 2.2, "$m_{im}$", color="red", fontsize=14)
 plt.title("Complex Refractive Index of Silver")
 
 wavelengths = ag_lam
-particle_index = ag_mre - 1j * ag_mim
+particle_index = ag_mre + 1j * ag_mim
 
 absorb_cross = []
 scatter_cross = []

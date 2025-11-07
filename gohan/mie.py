@@ -16,7 +16,7 @@ def size_parameter(particle_radius, refractive_index, wavelength):
     particle_radius: float
         particle radius in units of distance, should be same as wavelength
     refractive_index: float
-        refractive index of the dielectric particle
+        refractive index of the medium
     wavelength: float
         wavelength in units of distance, same as particle_radius
 
@@ -152,7 +152,7 @@ def mie_summation_terms(n, medium_index, particle_radius, particle_index, wavele
     """
 
     m = relative_index(medium_index, particle_index)
-    x = size_parameter(particle_radius, particle_index, wavelength)
+    x = size_parameter(particle_radius, medium_index, wavelength)
 
     a_n, b_n = mie_coefficients_ab(x, n, m)
 
@@ -247,7 +247,7 @@ def scattering_cross_section_terms(n, medium_index, particle_radius, particle_in
     """
 
     m = relative_index(medium_index, particle_index)
-    x = size_parameter(particle_radius, particle_index, wavelength)
+    x = size_parameter(particle_radius, medium_index, wavelength)
     wave_vector = wavelength**2 / 2 / np.pi / medium_index**2
     
     sigma_b = 0

@@ -51,6 +51,7 @@ def set_backend_to_cupy():
 
     return
 
+
 def set_backend_to_jax():
     """Convenience method to automatically configure katsu's backend to jax."""
     import jax as jax
@@ -61,85 +62,50 @@ def set_backend_to_jax():
     return
 
 
-def spherical_h1(n, z):
-    """Spherical Hankel function of the n-th order and first kind
-    """
-    return spherical_jn(n, z) + 1j * spherical_yn(n, z)
+def riccati_psi(n, z):
+    return z * spherical_jn(n, z)
 
+
+def riccati_xi(n, z):
+    """
+    NOTE: This differs from the scipy convention by a minus sign,
+    apparently users are free to choose the sign convention, but 
+    the minus sign is common for Mie theory, so there is a minus
+    sign in the test
+    """
+    return -z * spherical_yn(n, z)
+
+
+def riccati_psi_der(n, z):
+    jn = spherical_jn(n, z)
+    jnp = spherical_jn(n, z, derivative=True)
+    return jn + z * jnp
+
+
+def riccati_xi_der(n, z):
+    yn = spherical_yn(n, z)
+    ynp = spherical_yn(n, z, derivative=True)
+    return -(yn + z * ynp)
 
 def riccati_psi_xi(n, z):
     """Computes the Riccati-Bessel Functions of the first and second kind,
     These are grouped because they tend to be called together
     
+    TODO: Xi_prime is wrong
     TODO: Consider replacing n with np.arange(n+1) to pre-compute these functions
-
     Parameters
     ----------
     n:
     z:
     """
 
-    # Spherical bessel function of the first kind
-    jn = spherical_jn(n, z)
-    jn_prime = spherical_jn(n, z, derivative=True)
-    
-    yn = spherical_yn(n, z)
-    yn_prime = spherical_yn(n, z, derivative=True)
-     
     # Eval Riccati-Bessel
-    psi = z * jn
-    chi = -z * yn
-    xi = psi - 1j* chi
+    psi = riccati_psi(n, z) 
+    xi = riccati_xi(n, z)
 
-    # Derivatives from product rule
-    psi_prime = jn + z * jn_prime
-    chi_prime = -yn - z * yn_prime
-    xi_prime = psi_prime - 1j*chi_prime
+    # Eval Derivatives
+    psi_prime = riccati_psi_der(n, z) 
+    xi_prime = riccati_xi_der(n, z)
 
     return psi, psi_prime, xi, xi_prime
 
-
-def _psi_n(n, z):
-    """Compute the Riccati-Bessel Function of the first kind
-    
-    NOTE: This is a 'thin' wrapper over the scipy function to 
-    1) maintain notation with the reference for Mie Theory and
-    2) to handle cases where the different backends don't support the scipy functions
-
-    Parameters
-    ----------
-    n: int
-        maximum order of the function
-    z: float or ndarray
-        argument over which the function is evaluated
-    
-    Returns
-    -------
-    ndarray, ndarray:
-        Riccati-Bessel function evaluated over z, and its derivative
-    """
-    warn("Function _psi_n is depreciated")
-    return riccati_jn(n, z)
-
-
-def _xi_n(n, z):
-    """Compute the Riccati-Bessel Function of the second kind
-    
-    NOTE: This is a 'thin' wrapper over the scipy function to 
-    1) maintain notation with the reference for Mie Theory and
-    2) to handle cases where the different backends don't support the scipy functions
-
-    Parameters
-    ----------
-    n: int
-        maximum order of the function
-    z: float or ndarray
-        argument over which the function is evaluated
-    
-    Returns
-    -------
-    ndarray, ndarray:
-        Riccati-Bessel function evaluated over z, and its derivative
-    """
-    warn("Function _xi_n is depreciated")
-    return riccati_yn(n, z)
