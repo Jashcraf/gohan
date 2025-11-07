@@ -43,7 +43,7 @@ def relative_index(medium_index, particle_index):
         The relative index experienced between the particle and medium
     """
     if particle_index.imag == 0: 
-        return particle_index.real / medium_index 
+        return particle_index / medium_index 
     else:
         return particle_index.real / medium_index + 1j * particle_index.imag / medium_index
 
@@ -115,15 +115,19 @@ def mie_coefficients_ab(x, n, m):
     
     psi_n_eval_mx, psi_n_derivative_mx, _, _ = riccati_psi_xi(n, m*x)
     psi_n_eval_x, psi_n_derivative_x, xi_n_eval_x, xi_n_derivative_x = riccati_psi_xi(n, x)
-
-    numerator = m * psi_n_eval_mx * psi_n_derivative_x - psi_n_eval_x * psi_n_derivative_mx
-    denomenator = m * psi_n_eval_mx * xi_n_derivative_x - xi_n_eval_x * psi_n_derivative_mx
-    a_n = numerator / denomenator
-
-    numerator = psi_n_eval_mx * psi_n_derivative_x - m * psi_n_eval_x * psi_n_derivative_mx
-    denomenator = psi_n_eval_mx * xi_n_derivative_x - m * xi_n_eval_x * psi_n_derivative_mx
-
-    b_n = numerator / denomenator
+    
+    # Treat the coefficients as (A-B)/(C-D)
+    A = m * psi_n_eval_mx * psi_n_derivative_x
+    B = psi_n_eval_x * psi_n_derivative_mx
+    C = m * psi_n_eval_mx * xi_n_derivative_x
+    D = xi_n_eval_x * psi_n_derivative_mx
+    a_n = (A - B) / (C - D) 
+    
+    A = psi_n_eval_mx * psi_n_derivative_x
+    B = m * psi_n_eval_x * psi_n_derivative_mx
+    C = psi_n_eval_mx * xi_n_derivative_x
+    D = m * xi_n_eval_x * psi_n_derivative_mx
+    b_n = (A - B) / (C - D) 
     
     return a_n, b_n
 

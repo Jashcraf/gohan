@@ -4,7 +4,9 @@ from gohan.mie import (
     relative_index,
     pi_recursion,
     tau_recursion,
-    mie_summation_terms
+    mie_coefficients_ab,
+    mie_summation_terms,
+    amplitude_scattering_matrix
 )
 import pytest
 
@@ -97,33 +99,86 @@ def test_tau_recursion():
 
 # Don't presently have a good test for this one
 def test_mie_coefficients_ab():
-    pass
+    
+    """
+    From Table 4.1 in A&SBAS
+    """
+    x = 3
+    medium_index = 1.
+    particle_index = 1.33 - 1j * 1e-8
+    m = relative_index(medium_index, particle_index)
+
+    ns = [1, 2, 3]
+    ans = [5.1631e-1 - 1j * 4.9973e-1,
+           3.4192e-1 - 1j * 4.7435e-1,
+           4.8467e-2 - 1j * 2.1475e-1]
+    bns = [7.3767e-1 - 1j * 4.3990e-1,
+           4.0079e-1 - 1j * 4.9006e-1,
+           9.3553e-3 - 1j * 9.6269e-2 ]
+    
+    ans_test = []
+    bns_test = []
+    for n in ns:
+
+        # Now compute the values with gohan
+        an, bn = mie_coefficients_ab(x, n=n, m=m)
+        ans_test.append(an)
+        bns_test.append(bn)
+    
+    test = ans_test + bns_test
+    truth = ans + bns
+    np.testing.assert_allclose(test, truth)
+    
 
 
+@pytest.mark.skip
 def test_mie_summation_terms():
     """
-    miepython demo
-    https://miepython.readthedocs.io/en/latest/01_basics.html
+    From a miepython demo where they calculate a_n b_n coefficients
+    via upward and downward recurrence
     """
-    particle_index = 1.507 - 0.002j
-    sphere_size_parameter = 0.7086
-    mu = -1.0
+
     
-    # I just randomly chose a wavelength here oops
-    # distances are now in nanometers
-    particle_radius = sphere_size_parameter * 500 / 2 / np.pi # nanometers?
-    theta = np.arccos(mu)
+    for theta in thetas:
 
-    S1, S2 = mie_summation_terms(2, 1, particle_radius, particle_index, 500, theta)
-    true_s1 = 0.02452301+1j*0.29539154 
-    true_s2 = -0.02452301-1j*0.29539154
+        S1, S2 = mie_summation_terms(NTERM,
+                                     REFMED,
+                                     SPHERE_RADIUS,
+                                     REFRE,
+                                     0.6328,
+                                     np.radians(theta))
+        
+        test_S1.append(S1)
+    
 
-    test = np.array([S1, S2])
-    truth = np.array([true_s1, true_s2])    
-    # miepython also uses norm=albedo and n_pole=0, which returns all terms
-    # We have to chose a size parameter that matches
-    np.testing.assert_allclose(test, truth)
+    np.testing.assert_allclose(test_S1, true_S1)
 
+
+@pytest.mark.skip
+def test_amplitude_scattering_matrix():
+    
+    thetas = [0, 18, 36]
+    NTERM = 25
+
+    true_S1 = [1., 0.356857, 0.0355355]
+    test_S1 = []
+    for theta in thetas:
+
+        ASM = amplitude_scattering_matrix(NTERM,
+                                         REFMED,
+                                         SPHERE_RADIUS,
+                                         REFRE,
+                                         0.6328,
+                                         np.radians(theta))
+
+        print(ASM.shape)
+        S1 = ASM[0, 0]
+        S2 = ASM[1, 1]
+        
+        test_S1.append(S1)
+    
+
+    np.testing.assert_allclose(test_S1, true_S1)
 
 if __name__ == "__main__":
-    test_mie_summation_terms()
+    test_mie_coefficients_ab()
