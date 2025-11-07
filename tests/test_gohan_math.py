@@ -36,7 +36,7 @@ def test_riccati_xi():
     for n in ns:
         for z in zs:
             scipy_eval, _ = riccati_yn(n, z)
-            psi_truth.append(-1 * scipy_eval[-1])
+            psi_truth.append(scipy_eval[-1])
             psi_test.append(riccati_xi(n, z))
 
     np.testing.assert_allclose(psi_test, psi_truth, rtol=1e-7)
@@ -68,7 +68,7 @@ def test_riccati_xi_der():
     for n in ns:
         for z in zs:
             _, scipy_eval = riccati_yn(n, z)
-            psi_truth.append(-1 * scipy_eval[-1])
+            psi_truth.append(scipy_eval[-1])
             psi_test.append(riccati_xi_der(n, z))
 
     np.testing.assert_allclose(psi_test, psi_truth, rtol=1e-7)
@@ -90,8 +90,8 @@ def test_riccati_psi_xi():
 
             truth_psi = truth_psi[-1]
             truth_psi_der = truth_psi_der[-1]
-            truth_xi = -1 * truth_xi[-1]
-            truth_xi_der = -1 * truth_xi_der[-1]
+            truth_xi = truth_xi[-1]
+            truth_xi_der = truth_xi_der[-1]
 
             test_psi, test_psi_der, test_xi, test_xi_der = riccati_psi_xi(n, z)
             

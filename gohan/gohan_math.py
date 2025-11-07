@@ -73,7 +73,7 @@ def riccati_xi(n, z):
     the minus sign is common for Mie theory, so there is a minus
     sign in the test
     """
-    return -z * spherical_yn(n, z)
+    return z * spherical_yn(n, z)
 
 
 def riccati_psi_der(n, z):
@@ -85,7 +85,7 @@ def riccati_psi_der(n, z):
 def riccati_xi_der(n, z):
     yn = spherical_yn(n, z)
     ynp = spherical_yn(n, z, derivative=True)
-    return -(yn + z * ynp)
+    return (yn + z * ynp)
 
 def riccati_psi_xi(n, z):
     """Computes the Riccati-Bessel Functions of the first and second kind,
