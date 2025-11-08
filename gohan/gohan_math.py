@@ -63,26 +63,51 @@ def set_backend_to_jax():
 
 
 def riccati_psi(n, z):
+    """Riccati-Bessel function of the first kind
+    """
     return z * spherical_jn(n, z)
 
 
 def riccati_xi(n, z):
-    """
-    NOTE: This differs from the scipy convention by a minus sign,
-    apparently users are free to choose the sign convention, but 
-    the minus sign is common for Mie theory, so there is a minus
-    sign in the test
+    """Riccati-Bessel function of the second kind
+
+    NOTE: there are two expressions of this function depending on the
+    chosen sign convention. We chose the one to match scipy and miepython
     """
     return z * spherical_yn(n, z)
 
 
 def riccati_psi_der(n, z):
+    """
+    This is the method done by miepython, because gohan's implementation
+    may not be working with complex arguments?
+    """
+    return (n + 1) * spherical_jn(n, z) - z * spherical_jn(n + 1, z)
+
+
+def spherical_h1(n, z):
+    """
+    Spherical Hankel function of the first kind. This is the method done by
+    miepython
+    """
+    return spherical_jn(n, z) + 1j * spherical_yn(n, z)
+
+
+def riccati_xi_der(n, z):
+    """
+    This is the method done by miepython, because gohan's implementation
+    may not be working with complex arguments?
+    """
+    return 1/2 * (z * spherical_h1(n - 1, z) + spherical_h1(n, z) - z * spherical_h1(n + 1, z))
+
+
+def _riccati_psi_der(n, z):
     jn = spherical_jn(n, z)
     jnp = spherical_jn(n, z, derivative=True)
     return jn + z * jnp
 
 
-def riccati_xi_der(n, z):
+def _riccati_xi_der(n, z):
     yn = spherical_yn(n, z)
     ynp = spherical_yn(n, z, derivative=True)
     return (yn + z * ynp)
