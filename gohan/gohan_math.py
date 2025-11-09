@@ -1,6 +1,7 @@
 import numpy as np
 from warnings import warn
 from scipy.special import spherical_jn, spherical_yn
+from functools import lru_cache
 
 # Physical constants
 C = 2.998e10  # cm/s
@@ -102,15 +103,82 @@ def riccati_xi_der(n, z):
 
 
 def _riccati_psi_der(n, z):
+    """
+    Old implementation of derivative, which matches scipy for arbitrary values
+    """
     jn = spherical_jn(n, z)
     jnp = spherical_jn(n, z, derivative=True)
     return jn + z * jnp
 
 
 def _riccati_xi_der(n, z):
+    """
+    Old implementation of derivative, which matches scipy for arbitrary values
+    """
     yn = spherical_yn(n, z)
     ynp = spherical_yn(n, z, derivative=True)
     return (yn + z * ynp)
+
+
+def log_deriv_psi(n, x, tol=1e-15, max_iter=10_000):
+    """Uses Lentz's algorithm for computing the derivative of psi. This method
+    converges in fewer iterations than Dave method:
+    https://web.gps.caltech.edu/~vijay/Papers/Aerosol/MieAlgorithmPaper.pdf
+
+    Parameters
+    ----------
+    n: int
+        order to evaluate derivative
+    x: float or ndarray
+        argument of the logarithmic derivative
+
+    Returns
+    -------
+    ndarray
+        logarithmic derivative of the Riccati-Bessel function of the 
+        nth order and first kind
+
+    """
+
+    REGULARIZE = 1e-30
+
+    if abs(n/x) > REGULARIZE:
+        f = -n / x
+    else:
+        f = REGULARIZE
+
+    C = f
+    D = 0.0
+    a = -1.0
+
+    for m in range(1, max_iter):
+
+        b = 2 * (n + m) / x
+
+        D = b + a * D
+        if abs(D) < regularize:
+            D = regularize
+        
+        D = 1 / D
+
+        C = b + a / C
+        if abs(C) < regularize:
+            C = regularize
+        
+        # Iterative solution
+        delta = C * D
+        f = f * delta
+
+        if abs(delta - 1.0) < tol:
+            return f
+
+    raise RuntimeError(f"Lentz algorithm failed to converge after {max_iter} iterations")
+
+
+@lru_cache(maxsize=1024)
+def log_deriv_psi_cached(n, x):
+    return log_deriv_psi(n, x)
+
 
 def riccati_psi_xi(n, z):
     """Computes the Riccati-Bessel Functions of the first and second kind,

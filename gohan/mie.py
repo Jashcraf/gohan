@@ -1,4 +1,4 @@
-from gohan.gohan_math import np, riccati_psi_xi
+from gohan.gohan_math import np, riccati_psi_xi, riccati_psi, log_deriv_psi
 from gohan.config import config
 from functools import lru_cache
 
@@ -74,6 +74,35 @@ def pi_recursion(n, theta):
         return first * pi_recursion(n-1, theta) - second * pi_recursion(n-2, theta)
 
 
+def pi_recursion_wiscombe(n, theta):
+    """Uses Wiscombe's algorithm for computing the pi angle function,
+    requires fewer overall operations
+
+    Parameters
+    ----------
+    n: int
+        maximum order to evaluate the pi_n recursion at
+    theta: ndarray
+        argument over which to evaluate pi
+
+    Returns
+    -------
+    ndarray
+        pi_n
+
+    """
+    if n == 0:
+        return np.zeros_like(theta)
+    elif n == 1:
+        return np.ones_like(theta)
+    else:
+        mu = np.cos(theta)
+        s = mu * pi_recursion(n - 1, theta)
+        t = s - pi_recursion(n - 2, theta)
+
+        return s = (n + 1)/n * t
+
+
 def tau_recursion(n, theta):
     """
     Parameters
@@ -91,6 +120,28 @@ def tau_recursion(n, theta):
     first = n * np.cos(theta)
     second = (n + 1)
     return (first * pi_recursion(n, theta)) - (second * pi_recursion(n-1, theta))
+
+
+def tau_recursion_wiscombe(n, theta):
+    """Uses Wiscombe's algorithm for computing the tau angle function,
+    requires fewer overall operations
+
+    Parameters
+    ----------
+    n: int
+        maximum order to evaluate the tau_n recursion at
+    theta: ndarray
+        argument over which to evaluate tau
+
+    Returns
+    -------
+    ndarray
+        tau_n
+
+    """
+    mu = np.cos(theta)
+    pi_nm1 = pi_recursion(n-2, theta)
+    pass
 
 
 def mie_coefficients_ab(x, n, m):
