@@ -127,6 +127,18 @@ def test_mie_coefficients_ab():
     
     test = ans_test + bns_test
     truth = ans + bns
+    
+    # Let's try the example from miepython instead
+    m = 4/3
+    x = 50
+    a_1 = 0.531105889295 - 0.499031485631 * 1j
+    b_1 = 0.791924475935 - 0.405931152229 * 1j
+    
+    a1test, b1test = mie_coefficients_ab(x, n=1, m=m)
+
+    truth = [a_1, b_1]
+    test = [a1test, b1test]
+
     np.testing.assert_allclose(test, truth)
     
 

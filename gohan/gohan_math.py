@@ -142,42 +142,56 @@ def log_deriv_psi(n, x, tol=1e-15, max_iter=10_000):
 
     REGULARIZE = 1e-30
 
-    if abs(n/x) > REGULARIZE:
-        f = -n / x
-    else:
-        f = REGULARIZE
+    xinv = 2. / x
+    alpha = (n + 1/2) * xinv
+    aj = -(n + 1.5) * xinv
+    alpha_j1 = aj + 1/alpha
+    alpha_j2 = aj
+    ratio = alpha_j1 / alpha_j2
+    runratio = alpha * ratio
 
-    C = f
-    D = 0.0
-    a = -1.0
+    while np.abs(np.abs(ratio) - 1) > 1e-12:
+        aj = xinv - aj
+        alpha_j1 = 1 / alpha_j1 + aj
+        alpha_j2 = 1 / alpha_j2 + aj
+        ratio = alpha_j1 / alpha_j2
+        xinv = xinv * -1
+        runratio = ratio * runratio
 
-    for m in range(1, max_iter):
-
-        b = 2 * (n + m) / x
-
-        D = b + a * D
-        if abs(D) < regularize:
-            D = regularize
-        
-        D = 1 / D
-
-        C = b + a / C
-        if abs(C) < regularize:
-            C = regularize
-        
-        # Iterative solution
-        delta = C * D
-        f = f * delta
-
-        if abs(delta - 1.0) < tol:
-            return f
-
-    raise RuntimeError(f"Lentz algorithm failed to converge after {max_iter} iterations")
-
+    return -n / x + runratio
 
 @lru_cache(maxsize=1024)
 def log_deriv_psi_cached(n, x):
     return log_deriv_psi(n, x)
+
+
+def log_derive_psi_downward(n, x):
+    """Computes the values of D_n -> D_0 by downward recurrence
+    
+    Parameters
+    ----------
+    n: int
+        Order to evaluate logarithmic derivative at
+    x: float
+        Argument to pass to logarithmic derivative
+
+    Returns
+    -------
+    ndarray
+        logarithmic derivative of order n -> 0 evaluated at x
+    """
+
+    D_n = log_deriv_psi(n, x)
+    D_ns = np.zeros(n)
+    D_ns[0] = D_n
+
+    for m in range(n, 0, -1):
+
+        # Update D_n
+        D_n = n / z - 1.0 / (D_n + n / z)
+        D_ns[n - 1] = D_n
+
+    return D_ns
 
 
 def riccati_psi_xi(n, z):

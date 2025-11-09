@@ -1,4 +1,4 @@
-from gohan.gohan_math import np, riccati_psi_xi, riccati_psi, log_deriv_psi
+from gohan.gohan_math import np, riccati_psi_xi, riccati_psi, riccati_xi, log_deriv_psi
 from gohan.config import config
 from functools import lru_cache
 
@@ -100,7 +100,7 @@ def pi_recursion_wiscombe(n, theta):
         s = mu * pi_recursion(n - 1, theta)
         t = s - pi_recursion(n - 2, theta)
 
-        return s = (n + 1)/n * t
+        return (n + 1)/n * t
 
 
 def tau_recursion(n, theta):
@@ -143,6 +143,44 @@ def tau_recursion_wiscombe(n, theta):
     pi_nm1 = pi_recursion(n-2, theta)
     pass
 
+
+def _mie_coefficients_ab(x, n, m):
+    """Computes the mie coefficients using the logarithmic derivative of psi
+
+    Parameters
+    ----------
+    x: float
+        The size parameter of the particles, see `size_parameter` method
+    n: int
+        pole order of the Mie coefficient. n=1 is the dipole term, n=2 is the quadrapole term,
+        and so on.
+    m: complex float
+        The relative refractive index between the dielectric sphere and medium. See
+        `relative_index` method.
+
+
+    Returns
+    -------
+    ndarray, ndarray
+        The a_n and b_n coefficients from Mie Theory
+    """
+
+    D_n = log_deriv_psi(m * n, x)
+    psi_n = riccati_psi(n, x)
+    psi_nm1 = riccati_psi(n - 1, x)
+
+    xi_n = riccati_psi(n, x)
+    xi_nm1 = riccati_psi(n - 1, x)
+
+    nx = n / x
+
+    an_arg = D_n / m + nx
+    bn_arg = D_n * m + nx
+
+    an = (an_arg * psi_n - psi_nm1) / (an_arg * xi_n - xi_nm1)
+    bn = (bn_arg * psi_n - psi_nm1) / (bn_arg * xi_n - xi_nm1)
+
+    return an, bn
 
 def mie_coefficients_ab(x, n, m):
     """
