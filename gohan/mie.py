@@ -169,8 +169,8 @@ def mie_coefficients_ab(x, n, m):
     psi_n = riccati_psi(n, x)
     psi_nm1 = riccati_psi(n - 1, x)
 
-    xi_n = riccati_psi(n, x)
-    xi_nm1 = riccati_psi(n - 1, x)
+    xi_n = riccati_xi(n, x)
+    xi_nm1 = riccati_xi(n - 1, x)
 
     nx = n / x
 

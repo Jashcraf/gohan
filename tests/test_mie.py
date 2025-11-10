@@ -135,6 +135,8 @@ def test_mie_coefficients_ab():
     b_1 = 0.791924475935 - 0.405931152229 * 1j
     
     a1test, b1test = mie_coefficients_ab(x, n=1, m=m)
+    print(a1test)
+    print(b1test)
 
     truth = [a_1, b_1]
     test = [a1test, b1test]
