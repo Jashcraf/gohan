@@ -4,14 +4,14 @@ https://en.wikipedia.org/wiki/Mie_scattering#/media/File:N4wiki.svg
 """
 
 import matplotlib.pyplot as plt
-from gohan.mie import scattering_cross_section_terms
+from gohan.mie import scattering_cross_section_terms, rule_for_nterms
 from gohan.gohan_math import np
 from time import perf_counter
 import importlib.resources as resources
 
 MEDIUM_INDEX = 1.
 PARTICLE_RADIUS = 0.3 # microns
-SUMMATION_ORDER = 2
+SUMMATION_ORDER = 14
 
 # Import silver sphere data
 # ag = np.genfromtxt('https://refractiveindex.info/tmp/database/data/main/Ag/nk/Johnson.txt', delimiter='\t')
