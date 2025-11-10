@@ -144,7 +144,7 @@ def tau_recursion_wiscombe(n, theta):
     pass
 
 
-def _mie_coefficients_ab(x, n, m):
+def mie_coefficients_ab(x, n, m):
     """Computes the mie coefficients using the logarithmic derivative of psi
 
     Parameters
@@ -165,7 +165,7 @@ def _mie_coefficients_ab(x, n, m):
         The a_n and b_n coefficients from Mie Theory
     """
 
-    D_n = log_deriv_psi(m * n, x)
+    D_n = log_deriv_psi(n, m * x)
     psi_n = riccati_psi(n, x)
     psi_nm1 = riccati_psi(n - 1, x)
 
@@ -182,7 +182,8 @@ def _mie_coefficients_ab(x, n, m):
 
     return an, bn
 
-def mie_coefficients_ab(x, n, m):
+
+def _mie_coefficients_ab(x, n, m):
     """
     Parameters
     ----------

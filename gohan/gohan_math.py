@@ -140,7 +140,6 @@ def log_deriv_psi(n, x, tol=1e-15, max_iter=10_000):
 
     """
 
-    REGULARIZE = 1e-30
 
     xinv = 2. / x
     alpha = (n + 1/2) * xinv
@@ -152,12 +151,11 @@ def log_deriv_psi(n, x, tol=1e-15, max_iter=10_000):
 
     while np.abs(np.abs(ratio) - 1) > 1e-12:
         aj = xinv - aj
-        alpha_j1 = 1 / alpha_j1 + aj
-        alpha_j2 = 1 / alpha_j2 + aj
+        alpha_j1 = 1 / (alpha_j1 + aj)
+        alpha_j2 = 1 / (alpha_j2 + aj)
         ratio = alpha_j1 / alpha_j2
         xinv = xinv * -1
         runratio = ratio * runratio
-
     return -n / x + runratio
 
 @lru_cache(maxsize=1024)
