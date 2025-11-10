@@ -69,13 +69,72 @@ def riccati_psi(n, z):
     return z * spherical_jn(n, z)
 
 
+def riccati_psi_recurrence(n, x):
+    """Riccati-Bessel function of the first kind, solved via forward recursion
+    """
+    
+    # Init with n = 1, n-1 = 0
+    psi_nm1 = np.sin(x)
+    psi_n = psi_nm1 / x - np.cos(x)
+    
+    # Solve for first round of n+1
+    psi_np1 = (2*n + 1) / x * psi_n - psi_nm1
+    
+    if n == 0:
+        return psi_nm1
+    elif n == 1:
+        return psi_n
+    elif n == 2:
+        return psi_np1
+    else:
+        for i in range(2, n+1):
+             
+            # Update psi_np1, psi_n, psi_nm1 by 1
+            psi_nm1 = psi_n
+            psi_n = psi_np1
+            psi_np1 = (2*n + 1) / x * psi_n - psi_nm1
+
+    return psi_np1 
+
+
 def riccati_xi(n, z):
     """Riccati-Bessel function of the second kind
 
     NOTE: there are two expressions of this function depending on the
     chosen sign convention. We chose the one to match scipy and miepython
     """
-    return z * spherical_yn(n, z)
+    return z * spherical_jn(n, z) + 1j * z * spherical_yn(n, z)
+
+
+def riccati_xi_recurrence(n, x):
+    """Riccati-Bessel function of the second kind, solved via forward recursion
+    """
+    
+    # Init with n = 1, n-1 = 0
+    sinx = np.sin(x)
+    cosx = np.cos(x)
+    psi_nm1 = sinx 
+    psi_n = psi_nm1 / x - cosx
+    
+    xi_nm1 = psi_nm1 + 1j * cosx 
+    xi_n = psi_n + 1j * (cosx/x + sinx)
+    xi_np1 = (2*n + 1) / x * xi_n - xi_nm1
+
+    if n == 0:
+        return xi_nm1
+    elif n == 1:
+        return xi_n
+    elif n == 2:
+        return xi_np1
+    else:
+        for i in range(2, n+1):
+             
+            # Update psi_np1, psi_n, psi_nm1 by 1
+            xi_nm1 = xi_n
+            xi_n = xi_np1
+            xi_np1 = (2*n + 1) / x * xi_n - xi_nm1
+
+        return xi_np1 
 
 
 def riccati_psi_der(n, z):
@@ -120,7 +179,7 @@ def _riccati_xi_der(n, z):
     return (yn + z * ynp)
 
 
-def log_deriv_psi(n, x, tol=1e-15, max_iter=10_000):
+def log_deriv_psi(n, x, tol=1e-15):
     """Uses Lentz's algorithm for computing the derivative of psi. This method
     converges in fewer iterations than Dave method:
     https://web.gps.caltech.edu/~vijay/Papers/Aerosol/MieAlgorithmPaper.pdf
@@ -149,13 +208,14 @@ def log_deriv_psi(n, x, tol=1e-15, max_iter=10_000):
     ratio = alpha_j1 / alpha_j2
     runratio = alpha * ratio
 
-    while np.abs(np.abs(ratio) - 1) > 1e-12:
+    while np.abs(np.abs(ratio) - 1) > tol:
         aj = xinv - aj
-        alpha_j1 = 1 / (alpha_j1 + aj)
-        alpha_j2 = 1 / (alpha_j2 + aj)
+        alpha_j1 = 1. / alpha_j1 + aj
+        alpha_j2 = 1. / alpha_j2 + aj
         ratio = alpha_j1 / alpha_j2
         xinv = xinv * -1
         runratio = ratio * runratio
+    
     return -n / x + runratio
 
 @lru_cache(maxsize=1024)

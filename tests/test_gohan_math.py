@@ -7,6 +7,7 @@ from gohan.gohan_math import (
     riccati_xi,
     riccati_psi_der,
     riccati_xi_der,
+    log_deriv_psi,
     riccati_psi_xi
 )
 
@@ -74,6 +75,19 @@ def test_riccati_xi_der():
     np.testing.assert_allclose(psi_test, psi_truth, rtol=1e-7)
 
 
+def test_log_deriv_psi():
+    
+    # Values from Miepython
+    m = 1
+    x = 1
+    n = 5
+
+    D_n_test = log_deriv_psi(n, m * x, tol=1e-12)
+    D_n_truth = 5.92268 # from miepython demo
+
+    np.testing.assert_allclose(D_n_test, D_n_truth, atol=1e-5)
+
+
 def test_riccati_psi_xi():
 
     ns = [0, 1, 2]
@@ -99,5 +113,3 @@ def test_riccati_psi_xi():
             test_values += [test_psi, test_psi_der, test_xi, test_xi_der]
     np.testing.assert_allclose(test_values, truth_values)
 
-if __name__ == "__main__":
-    test_riccati_psi_xi()
