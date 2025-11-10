@@ -139,30 +139,6 @@ def riccati_xi_recurrence(n, x):
 
 def riccati_psi_der(n, z):
     """
-    This is the method done by miepython, because gohan's implementation
-    may not be working with complex arguments?
-    """
-    return (n + 1) * spherical_jn(n, z) - z * spherical_jn(n + 1, z)
-
-
-def spherical_h1(n, z):
-    """
-    Spherical Hankel function of the first kind. This is the method done by
-    miepython
-    """
-    return spherical_jn(n, z) + 1j * spherical_yn(n, z)
-
-
-def riccati_xi_der(n, z):
-    """
-    This is the method done by miepython, because gohan's implementation
-    may not be working with complex arguments?
-    """
-    return 1/2 * (z * spherical_h1(n - 1, z) + spherical_h1(n, z) - z * spherical_h1(n + 1, z))
-
-
-def _riccati_psi_der(n, z):
-    """
     Old implementation of derivative, which matches scipy for arbitrary values
     """
     jn = spherical_jn(n, z)
@@ -170,7 +146,7 @@ def _riccati_psi_der(n, z):
     return jn + z * jnp
 
 
-def _riccati_xi_der(n, z):
+def riccati_xi_der(n, z):
     """
     Old implementation of derivative, which matches scipy for arbitrary values
     """

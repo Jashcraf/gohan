@@ -259,10 +259,15 @@ def mie_summation_terms(n, medium_index, particle_radius, particle_index, wavele
 
     a_n, b_n = mie_coefficients_ab(x, n, m)
 
+    print(f"Relative Index = {m}")
+    print(f"Size Parameter = {x}")
+    print(f"Mie Coefficients = {a_n}, {b_n}")
 
     front = (2 * n + 1) / (n * (n + 1))
     S1_n = front * (a_n * pi_recursion(n, theta) + b_n * tau_recursion(n, theta))
     S2_n = front * (b_n * pi_recursion(n, theta) + a_n * tau_recursion(n, theta))
+    print(f"S1_{n} = {S1_n}")
+    print(f"S2_{n} = {S2_n}")
     
     return S1_n, S2_n
 

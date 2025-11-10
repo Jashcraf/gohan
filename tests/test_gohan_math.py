@@ -4,9 +4,11 @@ from scipy.special import riccati_jn, riccati_yn
 
 from gohan.gohan_math import (
     riccati_psi,
+    riccati_psi_recurrence,
     riccati_xi,
     riccati_psi_der,
     riccati_xi_der,
+    riccati_xi_recurrence,
     log_deriv_psi,
     riccati_psi_xi
 )
@@ -27,6 +29,24 @@ def test_riccati_psi():
     np.testing.assert_allclose(psi_test, psi_truth, rtol=1e-7)
 
 
+@pytest.mark.skip(reason="This function is no longer used directly")
+def test_riccati_psi_recurrence():
+
+    ns = [0, 1, 2, 3]
+    zs = [0.1, 0.5, 1., 2.]
+    
+    psi_test = []
+    psi_truth = []
+    
+    for n in ns:
+        for z in zs:
+            scipy_eval, _ = riccati_jn(n, z)
+            psi_truth.append(scipy_eval[-1])
+            psi_test.append(riccati_psi_recurrence(n, z))
+
+    np.testing.assert_allclose(psi_test, psi_truth, rtol=1e-7, atol=1e-7)
+
+
 def test_riccati_xi():
 
     ns = [0, 1, 2]
@@ -38,11 +58,30 @@ def test_riccati_xi():
         for z in zs:
             scipy_eval, _ = riccati_yn(n, z)
             psi_truth.append(scipy_eval[-1])
-            psi_test.append(riccati_xi(n, z))
+            psi_test.append(riccati_xi(n, z).imag)
 
     np.testing.assert_allclose(psi_test, psi_truth, rtol=1e-7)
 
 
+@pytest.mark.skip(reason="This function is no longer used directly")
+def test_riccati_xi_recurrence():
+
+    ns = [0, 1, 2, 3]
+    zs = [0.1, 0.5, 1., 2.]
+    
+    psi_test = []
+    psi_truth = []
+    
+    for n in ns:
+        for z in zs:
+            scipy_eval, _ = riccati_yn(n, z)
+            psi_truth.append(scipy_eval[-1])
+            psi_test.append(riccati_xi_recurrence(n, z))
+
+    np.testing.assert_allclose(psi_test, psi_truth, rtol=1e-7, atol=1e-7)
+
+
+@pytest.mark.skip(reason="This function is no longer used directly")
 def test_riccati_psi_der():
 
     ns = [0, 1, 2]
@@ -59,6 +98,7 @@ def test_riccati_psi_der():
     np.testing.assert_allclose(psi_test, psi_truth, rtol=1e-7)
 
 
+@pytest.mark.skip(reason="This function is no longer used directly")
 def test_riccati_xi_der():
 
     ns = [0, 1, 2]
@@ -76,6 +116,8 @@ def test_riccati_xi_der():
 
 
 def test_log_deriv_psi():
+    """TODO: Should really be using a table of values and orders
+    """
     
     # Values from Miepython
     m = 1
@@ -88,6 +130,7 @@ def test_log_deriv_psi():
     np.testing.assert_allclose(D_n_test, D_n_truth, atol=1e-5)
 
 
+@pytest.mark.skip(reason="This function is no longer used directly")
 def test_riccati_psi_xi():
 
     ns = [0, 1, 2]

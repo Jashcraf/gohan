@@ -6,7 +6,8 @@ from gohan.mie import (
     tau_recursion,
     mie_coefficients_ab,
     mie_summation_terms,
-    amplitude_scattering_matrix
+    amplitude_scattering_matrix,
+    rule_for_nterms
 )
 import pytest
 
@@ -130,55 +131,71 @@ def test_mie_coefficients_ab():
     test = ans_test + bns_test
     truth = ans + bns
     
-    # Let's try the example from miepython instead
-    # m = 4/3
-    # x = 50
-    # a_1 = 0.531105889295 - 0.499031485631 * 1j
-    # b_1 = 0.791924475935 - 0.405931152229 * 1j
-    # 
-    # a1test, b1test = mie_coefficients_ab(x, n=1, m=m)
-    # print(a1test)
-    # print(b1test)
-
-    # truth = [a_1, b_1]
-    # test = [a1test, b1test]
-
     np.testing.assert_allclose(test, truth, rtol=1e-4, atol=1e-4)
-    
 
 
-@pytest.mark.skip
+# @pytest.mark.skip(reason="Unclear why the values are so differnt - has to do with summation?")
 def test_mie_summation_terms():
-    """
-    From a miepython demo where they calculate a_n b_n coefficients
-    via upward and downward recurrence
+    """Based on a Miepython demo
     """
 
+    m = 1.55 - 0.1 * 1j
+    x = 5.213
+    mu = [0, 0.5, 1.0]
+    thetas = np.arccos(mu) 
+    NTERM = rule_for_nterms(x)
     
+    # We have to pick a sphere radius that satisfies this
+    medium_index = 1.
+    sphere_index = m
+    wavelength = 0.6328
+    sphere_radius = x * wavelength / (2 * np.pi)
+
+    true_S2_real = [0.04308, -0.08407, 1.124380]
+    true_S2_imag = [-0.05982, 0.13895, -0.19843]
+    true_S2 = true_S2_real + true_S2_imag
+
+    test_S2_real = []
+    test_S2_imag = []
+
     for theta in thetas:
 
-        S1, S2 = mie_summation_terms(NTERM,
-                                     REFMED,
-                                     SPHERE_RADIUS,
-                                     REFRE,
-                                     0.6328,
-                                     np.radians(theta))
-        
-        test_S1.append(S1)
-    
+        ASM = amplitude_scattering_matrix(NTERM,
+                                     medium_index,
+                                     sphere_radius,
+                                     sphere_index,
+                                     wavelength,
+                                     theta)
+        S2 = ASM[1,1]
+        test_S2_real.append(S2.real) 
+        test_S2_imag.append(S2.imag)
 
-    np.testing.assert_allclose(test_S1, true_S1)
+    test_S2 = test_S2_real + test_S2_imag
+
+    np.testing.assert_allclose(test_S2, true_S2)
 
 
-@pytest.mark.skip
 def test_amplitude_scattering_matrix():
-    
-    thetas = [0, 18, 36]
-    NTERM = 25
+    """From appendix A of https://staff.cs.manchester.ac.uk/~fumie/internal/scattering.pdf
+    """
+    thetas = [0, 9, 18]
+    test_size_parameter = size_parameter(SPHERE_RADIUS, REFMED, 0.6328)
 
-    true_S1 = [1., 0.356857, 0.0355355]
-    test_S1 = []
-    for theta in thetas:
+    NTERM = rule_for_nterms(test_size_parameter)
+
+    true_S11 = [1., 0.78538504, 0.356857]
+    test_S11 = []
+
+    true_S12 = [0, -0.00458392, -0.04578478]
+    test_S12 = []
+
+    true_S33 = [1., 0.99940039, 0.98602789]
+    test_S33 = []
+
+    true_S34 = [0., 0.03431985, 0.16016480]
+    test_S34 = []
+
+    for i, theta in enumerate(thetas):
 
         ASM = amplitude_scattering_matrix(NTERM,
                                          REFMED,
@@ -187,14 +204,34 @@ def test_amplitude_scattering_matrix():
                                          0.6328,
                                          np.radians(theta))
 
-        print(ASM.shape)
         S1 = ASM[0, 0]
         S2 = ASM[1, 1]
         
-        test_S1.append(S1)
-    
+        # Stokes I
+        S11 = (np.abs(S1)**2 + np.abs(S2)**2) / 2
+        if i == 0:
+            S11_0 = S11
 
-    np.testing.assert_allclose(test_S1, true_S1)
+        # Stokes Q
+        S12 = (np.abs(S1)**2 - np.abs(S2)**2) / 2
+        
+        # Stokes U
+        S33 = np.real(S2 * S1.conj())
 
-if __name__ == "__main__":
-    test_mie_coefficients_ab()
+        # Stokes V
+        S34 = np.imag(S2 * S1.conj())
+        
+        test_S11.append(S11)
+        test_S12.append(S12)
+        test_S33.append(S33)
+        test_S34.append(S34)
+
+    test_S11_norm = [t / S11_0 for t in test_S11]
+    test_S12_norm = [t / test_S11[i] for i, t in enumerate(test_S12)]
+    test_S33_norm = [t / test_S11[i] for i, t in enumerate(test_S33)]
+    test_S34_norm = [t / test_S11[i] for i, t in enumerate(test_S34)]
+
+    test = test_S11_norm + test_S12_norm + test_S33_norm + test_S34_norm
+    true = true_S11 + true_S12 + true_S33 + true_S34
+    np.testing.assert_allclose(test, true, rtol=1e-5, atol=1e-4)
+
