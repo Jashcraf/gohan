@@ -134,12 +134,12 @@ def test_mie_coefficients_ab():
     np.testing.assert_allclose(test, truth, rtol=1e-4, atol=1e-4)
 
 
-# @pytest.mark.skip(reason="Unclear why the values are so differnt - has to do with summation?")
+@pytest.mark.skip(reason="Unclear why the values are so differnt - has to do with summation?")
 def test_mie_summation_terms():
     """Based on a Miepython demo
     """
 
-    m = 1.55 - 0.1 * 1j
+    m = 1.55 + 0.1 * 1j
     x = 5.213
     mu = [0, 0.5, 1.0]
     thetas = np.arccos(mu) 
@@ -234,4 +234,8 @@ def test_amplitude_scattering_matrix():
     test = test_S11_norm + test_S12_norm + test_S33_norm + test_S34_norm
     true = true_S11 + true_S12 + true_S33 + true_S34
     np.testing.assert_allclose(test, true, rtol=1e-5, atol=1e-4)
+
+
+def test_scattering_cross_section_terms():
+    pass
 

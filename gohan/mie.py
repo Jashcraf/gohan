@@ -259,22 +259,15 @@ def mie_summation_terms(n, medium_index, particle_radius, particle_index, wavele
 
     a_n, b_n = mie_coefficients_ab(x, n, m)
 
-    print(f"Relative Index = {m}")
-    print(f"Size Parameter = {x}")
-    print(f"Mie Coefficients = {a_n}, {b_n}")
-
     front = (2 * n + 1) / (n * (n + 1))
     S1_n = front * (a_n * pi_recursion(n, theta) + b_n * tau_recursion(n, theta))
     S2_n = front * (b_n * pi_recursion(n, theta) + a_n * tau_recursion(n, theta))
-    print(f"S1_{n} = {S1_n}")
-    print(f"S2_{n} = {S2_n}")
     
     return S1_n, S2_n
 
 
 def amplitude_scattering_matrix(n_terms, medium_index, particle_radius,
                                 particle_index, wavelength, theta):
-    
     """
     Parameters
     ----------
@@ -296,9 +289,9 @@ def amplitude_scattering_matrix(n_terms, medium_index, particle_radius,
     ndarray
         The amplitude scattering matrix
     """
-    S1 = 0
-    S2 = 0
 
+    S1 = 0.
+    S2 = 0.
     for n in range(1, n_terms+1):
         S1_n, S2_n = mie_summation_terms(n,
                                          medium_index,
@@ -311,7 +304,7 @@ def amplitude_scattering_matrix(n_terms, medium_index, particle_radius,
         S2 = S2 + S2_n
 
     # Construct the matrix
-    amp_scatter_matrix = np.array([[S1, 0], [0, S2]], dtype=config.precision_complex)
+    amp_scatter_matrix = np.array([[S1, 0.], [0., S2]], dtype=config.precision_complex)
 
     return amp_scatter_matrix
 
@@ -361,7 +354,7 @@ def scattering_cross_section_terms(n, medium_index, particle_radius, particle_in
     sigma_b = 0
     sigma_c = 0
 
-    for i in range(0, n):
+    for i in range(1, n+1):
         a_n, b_n = mie_coefficients_ab(x, i, m)
         sigma_b = sigma_b + wave_vector * (2*i + 1) * (np.abs(a_n)**2 + np.abs(b_n)**2)
         sigma_c = sigma_c + wave_vector * (2*i + 1) * np.real(a_n + b_n)
