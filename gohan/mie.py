@@ -325,7 +325,7 @@ def scattering_cross_section_terms(n, medium_index, particle_radius, particle_in
     omega = sig_b / sig_c
 
     so I believe these are the scattering cross-sections for energy scattered into all directions,
-    and total attenuated energy.
+    and total attenuated energy. So we don't include area when computing the scattering opacities.
 
     Parameters
     ----------
@@ -349,8 +349,9 @@ def scattering_cross_section_terms(n, medium_index, particle_radius, particle_in
 
     m = relative_index(medium_index, particle_index)
     x = size_parameter(particle_radius, medium_index, wavelength)
+
+    # miepython doesn't include this in _single_sphere_nb
     wave_vector = wavelength**2 / 2 / np.pi / medium_index**2
-    
     sigma_b = 0
     sigma_c = 0
 
@@ -411,16 +412,49 @@ def compute_opacities(grain_sizes, grain_size_distribution, material_kwargs, gra
     if isinstance(grain_size_distribution, Callable):
         grain_size_distribution = grain_size_distribution(grain_sizes, **grain_size_kwargs)
     
-
-    kappa_sca = 0
-    kappa_ext = 0
+    # Init opacities
+    kappa_sca = 0.
+    kappa_ext = 0.
+    
     for grain_size, distribution in zip(grain_sizes, grain_size_distribution):
 
-        area = np.pi * grain_size**2 * distribution
         sigma_sca, sigma_ext = scattering_cross_section_terms(**material_kwargs)
-        kappa_sca = kappa_sca + area * sigma_sca
-        kappa_ext = kappa_ext + area * sigma_ext
+        kappa_sca = kappa_sca + sigma_sca
+        kappa_ext = kappa_ext + sigma_ext
 
     return kappa_sca, kappa_ext
+
+
+def mueller_from_asm(n_terms, medium_index, particle_radius, particle_index,
+                     wavelength, theta):
+
+    ASM = amplitude_scattering_matrix(n_terms, medium_index, particle_radius,
+                                particle_index, wavelength, theta)
+
+    S1 = ASM[0, 0]
+    S2 = ASM[1, 1]
+    absS1 = np.abs(S1)**2
+    absS2 = np.abs(S2)**2
+    
+    # Use expressions for jones to mueller conversion
+    S11 = (absS1 + absS2) / 2
+    S12 = (absS1 - absS2) / 2
+
+    S33 = np.real(S1 * S2.conj())
+    S34 = np.imag(S1 * S2.conj())
+
+    zeros = np.zeros_like(S11)
+    
+    # Construct the Mueller matrix
+    mueller = np.array([
+        [S11, S12, zeros, zeros],
+        [S12, S11, zeros, zeros],
+        [zeros, zeros, S33, -S34],
+        [zeros, zeros, S34, S33],
+    ])
+
+    return mueller
+
+
 
 

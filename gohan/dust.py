@@ -125,6 +125,43 @@ def vertical_profile(r, theta, z, rho_0=1, a_in=0.1, a_out=1, gamma=2, xi_0=1, B
     return rho_0 * np.sqrt(2 / (inner * outer)) * decay
 
 
+def size_distribution_power_law(a_min, a_max, power_law_index=-3.5, nsteps=10, spacing="log"):
+    """Dohnanyi power law
+    
+    Parameters
+    ----------
+    a_min: float
+        Grain size in units of distance
+    a_max: float
+        Grain size in units of distance
+    power_law_index: float
+        Index of the power law that parameterizes the size distribution,
+        defaults to -3.5
+    nsteps: int
+        number of steps between the minimum and maximum grain size
+    spacing: str
+        the spacing of values between a_min and a_max, accepts "linear"
+        or "log"
+
+    Returns
+    -------
+    ndarray
+        number density of particles evaluated at each particle size
+    """
+    spacing = spacing.lower()
+    assert spacing in ["linear", "log"]
+    
+    if spacing == "linear":
+        a = np.linspace(a_min, a_max, nsteps)
+    elif spacing == "log":
+        a = np.logspace(a_min, a_max, nsteps)
+
+    return a ** power_law_index
+
+
+
+
+
 class SkyGrid:
     def __init__(self, origin, n_samples):
 

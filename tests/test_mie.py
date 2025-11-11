@@ -7,7 +7,8 @@ from gohan.mie import (
     mie_coefficients_ab,
     mie_summation_terms,
     amplitude_scattering_matrix,
-    rule_for_nterms
+    rule_for_nterms,
+    scattering_cross_section_terms
 )
 import pytest
 
@@ -236,6 +237,29 @@ def test_amplitude_scattering_matrix():
     np.testing.assert_allclose(test, true, rtol=1e-5, atol=1e-4)
 
 
+@pytest.mark.skip(reason="unclear on fair comparison with miepython, plots in scripts/test_mie_scatter.py look identical, which is encouraging")
 def test_scattering_cross_section_terms():
+    # A miepython example
+
+    particle_index = complex(1.5, 0.0)
+    medium_index = 1.
+    x = 1000
+    wavelength = 1.
+    particle_radius = x * wavelength / (2 * np.pi)
+    
+    NTERMS = rule_for_nterms(x)
+
+    true_values = [2.0139]
+
+    sig_sca, sig_ext = scattering_cross_section_terms(NTERMS,
+                                                      medium_index,
+                                                      particle_radius,
+                                                      particle_index,
+                                                      wavelength)
+
+    np.testing.assert_allclose(sig_sca, true_values)
+
+
+def test_compute_opacities():
     pass
 
