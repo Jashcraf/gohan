@@ -5,7 +5,7 @@ https://en.wikipedia.org/wiki/Mie_scattering#/media/File:N4wiki.svg
 
 import matplotlib.pyplot as plt
 from gohan.mie import scattering_cross_section_terms, rule_for_nterms
-from gohan.gohan_math import np
+from gohan.gohan_math import np, set_backend_to_cupy
 from time import perf_counter
 import importlib.resources as resources
 
@@ -45,6 +45,8 @@ absorb_cross = []
 scatter_cross = []
 extinct_cross = []
 
+# set_backend_to_cupy()
+
 t1 = perf_counter()
 for wvl, index in zip(wavelengths, particle_index):
 
@@ -60,6 +62,10 @@ for wvl, index in zip(wavelengths, particle_index):
     absorb_cross.append(sigma_abs)
 
 runtime = perf_counter() - t1
+
+# scatter_cross = np.array(scatter_cross).get()
+# extinct_cross = np.array(extinct_cross).get()
+# absorb_cross = np.array(absorb_cross).get()
 
 plt.figure()
 plt.title(f"Time to compute {len(wavelengths)} wavelengths = {runtime:.2e}s")

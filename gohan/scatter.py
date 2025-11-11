@@ -55,7 +55,7 @@ def propagate_until_scatter(ray_x, ray_k, kappa, density_function, max_steps, di
     ray_k: ndarray
         N x 3 array of ray starting direction cosines
     kappa: complex float
-        mass opacity of dust grains
+        mass opacity of dust grains - from Mie / Rayleigh theory
     density_function: callable
         The dust density distribution function which is a function of
         r, theta, z. 
