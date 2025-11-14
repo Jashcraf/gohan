@@ -5,12 +5,14 @@ class Config:
                  precision=64,
                  radial_spacing="linear",
                  height_spacing="linear",
-                 azimuthal_spacing="logarithmic"):
+                 azimuthal_spacing="logarithmic",
+                 observer_direction=np.array([0., 0., 1.])):
 
         self.precision = precision
         self.radial_spacing = radial_spacing.lower()
         self.height_spacing = height_spacing.lower()
         self.azimuthal_spacing = azimuthal_spacing.lower()
+        self.observer_direction = observer_direction
 
     @property
     def precision(self):

@@ -1,7 +1,7 @@
 from gohan.gohan_math import np
-from gohan.dusty import vertical_profile
+from gohan.dust import vertical_profile
 from gohan.raytrace import prop_rays
-
+from gohan.mie import compute_opacities 
 
 def henyey_greenstein_phase_function(theta, g=0):
     """
@@ -44,7 +44,7 @@ def calculate_step_size(ray_x):
     return distances
 
 
-def propagate_until_scatter(ray_x, ray_k, kappa, density_function, max_steps, disk_kwargs, grid_kwargs):
+def propagate_until_scatter(ray_x, ray_k, kappa, density_function, max_steps, disk_kwargs, grid_kwargs, dust_kwargs):
 
     """
 
@@ -76,6 +76,12 @@ def propagate_until_scatter(ray_x, ray_k, kappa, density_function, max_steps, di
         - rlim
         - thetalim
         - zlim
+    dust_kwargs: dictionary
+        inputs for generating the scattering opacities
+        - grain_sizes
+        - grain_size_distribution
+        - material_kwargs
+        - grain_size_kwargs
 
     Returns
     -------
@@ -88,7 +94,6 @@ def propagate_until_scatter(ray_x, ray_k, kappa, density_function, max_steps, di
     tau_accumulated = np.zeros(NRAYS)
     active = np.ones_like(tau_accumulated, dtype=bool)
 
-    # Assemble density_function arguments
 
     for _ in range(max_steps):
         if not np.any(active):
@@ -100,6 +105,9 @@ def propagate_until_scatter(ray_x, ray_k, kappa, density_function, max_steps, di
         # Fixed step size
         ds = calculate_step_size(ray_x[active])
 
+        # Calculate scattering opacity
+        kappa = compute_opacities(**dust_kwargs)
+
         # Accumulate optical depth
         dtau = kappa * rho_local * ds
         tau_accumulated[active] = tau_accumulated[active] + dtau
@@ -109,7 +117,6 @@ def propagate_until_scatter(ray_x, ray_k, kappa, density_function, max_steps, di
 
         # Check for escape
         escaped = check_grid_boundaries(ray_x[active], **grid_kwargs)
-        
         # Terminate rays that escape or scatter
         active[active] = ~escaped
         active[active] = ~scattered
@@ -118,3 +125,5 @@ def propagate_until_scatter(ray_x, ray_k, kappa, density_function, max_steps, di
         ray_x[active] = prop_rays(ray_x, ray_k, ds)
 
     return ray_x[scattered]
+
+

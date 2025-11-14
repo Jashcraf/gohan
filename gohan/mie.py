@@ -230,9 +230,7 @@ def _mie_coefficients_ab(x, n, m):
     
     return a_n, b_n
 
-
-def mie_summation_terms(n, medium_index, particle_radius, particle_index, wavelength, theta):
-    """
+def mie_summation_terms(n, medium_index, particle_radius, particle_index, wavelength, theta): """
     Parameters
     ----------
     n: int

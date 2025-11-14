@@ -159,7 +159,12 @@ def size_distribution_power_law(a_min, a_max, power_law_index=-3.5, nsteps=10, s
     return a ** power_law_index
 
 
+class DustDistribution:
 
+    def __init__(self, a_min, a_max):
+
+        self.a_min = a_min
+        self.a_max = a_max
 
 
 class SkyGrid:
